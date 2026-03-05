@@ -147,7 +147,15 @@ function useMousePosition() {
       const ny = (e.clientY / window.innerHeight - 0.5) * 2
       target.current = { x: ny * 30, y: nx * 30 }
     }
+    const handleTouch = (e) => {
+      const touch = e.touches[0]
+      if (!touch) return
+      const nx = (touch.clientX / window.innerWidth - 0.5) * 2
+      const ny = (touch.clientY / window.innerHeight - 0.5) * 2
+      target.current = { x: ny * 30, y: nx * 30 }
+    }
     window.addEventListener('mousemove', handleMove)
+    window.addEventListener('touchmove', handleTouch, { passive: true })
 
     const animate = () => {
       const lerp = 0.05
@@ -160,6 +168,7 @@ function useMousePosition() {
 
     return () => {
       window.removeEventListener('mousemove', handleMove)
+      window.removeEventListener('touchmove', handleTouch)
       cancelAnimationFrame(raf.current)
     }
   }, [])
