@@ -62,8 +62,7 @@
   font-family: monospace, monospace;
   white-space: nowrap;
   display: inline-block;
-  width: 10ch; /* fixed width equal to target length */
-  text-align: center;
+  text-align: left;
   /* no animation here; text is driven by JS */
 }
 

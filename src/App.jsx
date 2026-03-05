@@ -119,9 +119,17 @@ function TypingOverlay() {
     return () => { cancelled = true }
   }, [])
 
+  const fmt = (d) => d.toISOString().slice(0, 16)
+  const [time, setTime] = useState(fmt(new Date()))
+  useEffect(() => {
+    const id = setInterval(() => setTime(fmt(new Date())), 1000)
+    return () => clearInterval(id)
+  }, [])
+
   return (
     <div className="typing-overlay">
       <div className="typing-text">
+        <span>{time}</span>{' '}
         {text.map((ch, idx) => (
           <span
             key={idx}
