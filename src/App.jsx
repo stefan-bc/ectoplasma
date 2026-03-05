@@ -1,7 +1,7 @@
 import './App.css'
 import { ShaderGradient, ShaderGradientCanvas } from '@shadergradient/react'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 function TypingOverlay() {
   const baseTarget = 'ectoplasma'
@@ -135,17 +135,98 @@ function TypingOverlay() {
   )
 }
 
+function useMousePosition() {
+  const [rotation, setRotation] = useState({ x: 0, y: 0 })
+  const target = useRef({ x: 0, y: 0 })
+  const current = useRef({ x: 0, y: 0 })
+  const raf = useRef(null)
+
+  useEffect(() => {
+    const handleMove = (e) => {
+      const nx = (e.clientX / window.innerWidth - 0.5) * 2
+      const ny = (e.clientY / window.innerHeight - 0.5) * 2
+      target.current = { x: ny * 30, y: nx * 30 }
+    }
+    window.addEventListener('mousemove', handleMove)
+
+    const animate = () => {
+      const lerp = 0.05
+      current.current.x += (target.current.x - current.current.x) * lerp
+      current.current.y += (target.current.y - current.current.y) * lerp
+      setRotation({ x: current.current.x, y: current.current.y })
+      raf.current = requestAnimationFrame(animate)
+    }
+    raf.current = requestAnimationFrame(animate)
+
+    return () => {
+      window.removeEventListener('mousemove', handleMove)
+      cancelAnimationFrame(raf.current)
+    }
+  }, [])
+
+  return rotation
+}
+
+const BASE_COLORS = ['#ff7a33', '#33a0ff', '#ffc53d']
+const ALT_PALETTES = [
+  ['#a855f7', '#6366f1', '#ec4899'],
+  ['#10b981', '#06b6d4', '#84cc16'],
+  ['#f43f5e', '#e879f9', '#fb923c'],
+  ['#38bdf8', '#818cf8', '#34d399'],
+]
+
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16)
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+}
+
+function rgbToHex([r, g, b]) {
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1)
+}
+
+function lerpColor(a, b, t) {
+  const ca = hexToRgb(a), cb = hexToRgb(b)
+  return rgbToHex(ca.map((v, i) => Math.round(v + (cb[i] - v) * t)))
+}
+
 function App() {
+  const rotation = useMousePosition()
+  const [colors, setColors] = useState(BASE_COLORS)
+  const animRef = useRef(null)
+
+  const handlePress = () => {
+    cancelAnimationFrame(animRef.current)
+    const palette = ALT_PALETTES[Math.floor(Math.random() * ALT_PALETTES.length)]
+    setColors(palette)
+
+    const duration = 1500
+    const start = performance.now()
+    const animate = (now) => {
+      const t = Math.min((now - start) / duration, 1)
+      const eased = t * t * (3 - 2 * t) // smoothstep
+      setColors(palette.map((c, i) => lerpColor(c, BASE_COLORS[i], eased)))
+      if (t < 1) animRef.current = requestAnimationFrame(animate)
+    }
+    // small delay before easing back
+    setTimeout(() => {
+      animRef.current = requestAnimationFrame(animate)
+    }, 200)
+  }
+
   return (
     <>
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        background: '#111111',
-      }}>
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: '#111111',
+        }}
+        onMouseDown={handlePress}
+        onTouchStart={handlePress}
+      >
         <ShaderGradientCanvas
           style={{ width: '100%', height: '100%' }}
           pointerEvents="none"
@@ -160,12 +241,12 @@ function App() {
             positionX={0}
             positionY={0}
             positionZ={0}
-            rotationX={0}
-            rotationY={0}
+            rotationX={rotation.x}
+            rotationY={rotation.y}
             rotationZ={0}
-            color1="#ff7a33"
-            color2="#33a0ff"
-            color3="#ffc53d"
+            color1={colors[0]}
+            color2={colors[1]}
+            color3={colors[2]}
             grain="on"
             lightType="3d"
             type="sphere"
