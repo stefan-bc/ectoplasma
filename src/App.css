@@ -40,3 +40,38 @@
 .read-the-docs {
   color: #888;
 }
+
+/* overlay typing effect */
+.typing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.typing-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 10vw;
+  font-family: monospace, monospace;
+  white-space: nowrap;
+  display: inline-block;
+  width: 10ch; /* fixed width equal to target length */
+  text-align: center;
+  /* no animation here; text is driven by JS */
+}
+
+.typing-text span {
+  opacity: 1;
+  transition: opacity 1s ease;
+}
+
+/* fade-out used when swapping letter ↔ symbol */
+.typing-text span.fading {
+  opacity: 0;
+}
