@@ -58,7 +58,7 @@
 
 .typing-text {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 14px;
+  font-size: clamp(10px, 2.5vw, 14px);
   font-family: monospace, monospace;
   white-space: nowrap;
   display: inline-block;
