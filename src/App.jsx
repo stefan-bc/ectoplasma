@@ -35,23 +35,23 @@ function TypingOverlay() {
       return arr
     }
 
-    // specify pools only where restrictions apply; others fall back to full symbol pool
-    // key = position index in baseTarget
-    const poolsByIndex = {
-      0: ['3', 'e', '#', '('],     // first letter 'e'
-      1: ['c', '(', '<'],          // second letter 'c'
-      // rest omitted -> no restriction
-    }
-    const fullSymbolArray = symbolPool.split('')
-
+    // pools for each position in "ectoplasma"
+    // index 0 corresponds to 'e', index 1 to 'c', etc.
+    const allowedPools = [
+      ['3', 'e', '#', '('],      // for first letter (e)
+      ['c', '(', '<'],           // second letter (c)
+      null,                      // third letter (t) - use global symbol pool
+      null,                      // fourth letter (o)
+      null,                      // fifth letter (p)
+      null,                      // sixth letter (l)
+      null,                      // seventh letter (a)
+      null,                      // eighth letter (s)
+      null,                      // ninth letter (m)
+      ['a', '4', '#'],                        // tenth letter (a)
+    ]
     const randomSymbol = (idx) => {
-      const pool = poolsByIndex[idx] || fullSymbolArray
-      const choice = pool[Math.floor(Math.random() * pool.length)]
-      // sanity check: ensure choice is in pool (should always be true)
-      if (!pool.includes(choice)) {
-        console.warn(`randomSymbol picked ${choice} not in pool for idx ${idx}`)
-      }
-      return choice
+      const pool = allowedPools[idx] || symbolPool.split('')
+      return pool[Math.floor(Math.random() * pool.length)]
     }
 
 
