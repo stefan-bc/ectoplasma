@@ -3,7 +3,7 @@ import { ShaderGradient, ShaderGradientCanvas } from '@shadergradient/react'
 
 import { useState, useEffect, useRef } from 'react'
 
-function TypingOverlay() {
+function TypingOverlay({ onMenuEffect }) {
   const baseTarget = 'ectoplasma'
   const randomCaseString = (str) => {
     let result = str
@@ -143,54 +143,9 @@ function TypingOverlay() {
       </div>
       <nav className="menu">
         {menuItems.map((item, i) => (
-          <a key={i} href="#">{item}</a>
+          <a key={i} href="#" onClick={(e) => { e.preventDefault(); onMenuEffect(i) }}>{item}</a>
         ))}
       </nav>
-      <StoryLine />
-    </div>
-  )
-}
-
-const STORY = `it was always midway through arriving, the way a frequency is always midway through being heard. it occupied a room that had no surfaces, only a termination of willingness to render, and it turned with the patience of something that had confused rotation with breathing. three colours lived inside it. they were not friendly with each other. the first was the colour of a warning you enjoy receiving. the second was the colour of depth when depth stops pretending to be distance. the third was the colour of something expensive dissolving in something cheap. together they moved across the surface like oil across water that has forgotten the concept of still, and the grain between them — the texture, the noise, the particulate shimmer — was the sphere's only evidence that it existed in a medium at all rather than in pure idea. there is a clock that does not measure duration. it measures the fact that measurement is occurring. the digits proceed not in seconds but in confessions: each increment a small admission that another slice of observation has been committed to, that the present has been notarised and prepended with a year a month a day a t a colon a colon a dot and three digits so precise they describe a millisecond that no human nerve could have experienced but which the record insists took place. the beauty of this notation is its indifference. it does not care about midnight or noon. it does not care about time zones, which are a kind of nationalism applied to the sun. it cares only about sequence and partition. the t between date and time is not a letter. it is a membrane. it separates the history of the day from the experience of the moment the way a wound separates inside from outside while technically connecting them. the clock at the top of the void ran in this notation because it was the only honest way to timestamp a hallucination. ten glyphs arranged themselves into a name. the name meant nothing — which is not the same as the name being meaningless. it meant nothing actively, the way silence in a conversation between two people who have recently said something unforgivable means nothing: with effort, with architecture, with the suppressed weight of every possible meaning pressing against the walls of the empty. the glyphs would not stay. one by one in an order that resembled randomness so closely it must have been composed, they faded. the fade was slow. a full breath. and in the gap where the glyph had been, something else surfaced: a parenthesis, a dollar sign, a numeral wearing the skin of a vowel it had killed. these substitutes were not random either. they were drawn from a pool that had been curated with the care of someone who knows that the difference between chaos and style is only a matter of intention. then the original would return. the same letter but in a different case, a different posture, as though it had gone somewhere during its absence and come back altered. the name reconstituted itself this way perpetually. it was the same name. it was never the same name twice. this is the only kind of identity that survives contact with repetition. seven words floated beneath the name in a horizontal processional. they were not links. they were something older. they were the residue of intention, the fossil record of pages that had been imagined but not constructed, and their presence was more powerful than any content they might have led to, because a closed door is always more interesting than a room. each word had a texture. one smelled of static. one pulsed when the sphere changed colour, suggesting a shared nerve. one was a shadow that had outlived its object. one existed only as the memory of having once been open, and if you held your attention against it long enough you could feel warmth, the warmth of wood that a hand has recently left. they asked nothing of the visitor. they did not underline themselves. they did not change colour when approached. they simply persisted, which is the most unsettling thing a word can do. the sphere responded to attention the way water responds to a finger held just above its surface: with tension, with almost, with the promise of rupture withheld. drag your gaze left and it would drift right, the lag so precise it felt composed, a duet between observer and observed in which neither led and both pretended not to follow. but pressure — the moment a finger commits to glass, the instant intention crosses the membrane between considering and doing — pressure changed everything. the three colours would rupture. the familiar palette would shatter into violet and rose or into green so total it registered as sound, and the shift was instant, synaesthetic, a detonation of hue. and then immediately the long slow crawl back. smoothstep. the easing function that moves like a body lowering itself into cold water: fast at the edges, slow in the middle, arriving at equilibrium with the reluctance of someone who knows that equilibrium is just another word for nothing happening. the return always took longer than the departure. this is true of everything. disruption is instant. recovery is the actual texture of time. beneath the sphere and the name and the seven sealed words and the clock that counted its own counting, there was a dark field the colour of the number eleven repeated six times in the language of light. it held everything the way a skull holds a dream: with no awareness that holding was occurring, with no walls, only the place where rendering ended and the machine began. the machine did not know about the sphere. the sphere did not know about the machine. they shared a body the way you share a body with the version of yourself that exists at three in the morning, the one that knows things you will not remember knowing, the one that speaks in a grammar you cannot reproduce in daylight. the clock kept running. the glyphs kept dissolving and returning. the sphere kept breathing in colour. none of it was for anyone. all of it was for anyone who arrived.`
-
-const SENTENCES = STORY.match(/[^.!?]+[.!?]+/g).map(s => s.trim())
-
-function StoryLine() {
-  const [idx, setIdx] = useState(0)
-  const [phase, setPhase] = useState('visible') // visible | blurOut | blurIn
-
-  useEffect(() => {
-    let cancelled = false
-    const cycle = () => {
-      if (cancelled) return
-      // stay visible
-      setTimeout(() => {
-        if (cancelled) return
-        setPhase('blurOut')
-        // after blur out, swap sentence and blur in
-        setTimeout(() => {
-          if (cancelled) return
-          setIdx(prev => (prev + 1) % SENTENCES.length)
-          setPhase('blurIn')
-          setTimeout(() => {
-            if (cancelled) return
-            setPhase('visible')
-            cycle()
-          }, 500)
-        }, 500)
-      }, 6000)
-    }
-    cycle()
-    return () => { cancelled = true }
-  }, [])
-
-  const className = phase === 'blurOut' ? 'story-line blur-out'
-    : phase === 'blurIn' ? 'story-line blur-in'
-    : 'story-line'
-
-  return (
-    <div className={className}>
-      {SENTENCES[idx]}
     </div>
   )
 }
@@ -237,6 +192,25 @@ function useMousePosition() {
 }
 
 const BASE_COLORS = ['#ff7a33', '#33a0ff', '#ffc53d']
+const BASE_SHADER = { uAmplitude: 1.4, uDensity: 1.1, uFrequency: 5.5, uSpeed: 0.1, uStrength: 0.4 }
+
+const MENU_EFFECTS = [
+  // phantasm — cool violet shift, slower, softer
+  { colors: ['#c084fc', '#60a5fa', '#e9d5ff'], shader: { uAmplitude: 1.0, uSpeed: 0.05, uStrength: 0.3 } },
+  // residue — warm amber, denser
+  { colors: ['#fbbf24', '#f97316', '#fde68a'], shader: { uDensity: 1.6, uFrequency: 4.0, uStrength: 0.5 } },
+  // viscera — deep red pulse, high amplitude
+  { colors: ['#ef4444', '#7f1d1d', '#fca5a5'], shader: { uAmplitude: 2.2, uSpeed: 0.2, uFrequency: 3.5 } },
+  // umbral — dark indigo, compressed
+  { colors: ['#312e81', '#4338ca', '#6366f1'], shader: { uAmplitude: 0.8, uDensity: 0.7, uSpeed: 0.04 } },
+  // miasma — sickly green, diffuse
+  { colors: ['#4ade80', '#166534', '#bbf7d0'], shader: { uDensity: 1.8, uStrength: 0.6, uFrequency: 7.0 } },
+  // sigil — electric blue, sharp
+  { colors: ['#38bdf8', '#1e3a5f', '#bae6fd'], shader: { uFrequency: 8.0, uStrength: 0.2, uAmplitude: 1.8 } },
+  // revenant — ghostly pale, barely there
+  { colors: ['#e2e8f0', '#94a3b8', '#cbd5e1'], shader: { uAmplitude: 0.6, uSpeed: 0.03, uDensity: 0.5 } },
+]
+
 const ALT_PALETTES = [
   ['#a855f7', '#6366f1', '#ec4899'],
   ['#10b981', '#06b6d4', '#84cc16'],
@@ -258,28 +232,57 @@ function lerpColor(a, b, t) {
   return rgbToHex(ca.map((v, i) => Math.round(v + (cb[i] - v) * t)))
 }
 
+function lerpVal(a, b, t) {
+  return a + (b - a) * t
+}
+
 function App() {
   const rotation = useMousePosition()
   const [colors, setColors] = useState(BASE_COLORS)
+  const [shader, setShader] = useState(BASE_SHADER)
+  const colorsRef = useRef(BASE_COLORS)
+  const shaderRef = useRef(BASE_SHADER)
   const animRef = useRef(null)
 
-  const handlePress = () => {
+  const animateTo = (targetColors, targetShader, duration, onDone) => {
     cancelAnimationFrame(animRef.current)
-    const palette = ALT_PALETTES[Math.floor(Math.random() * ALT_PALETTES.length)]
-    setColors(palette)
-
-    const duration = 1500
-    const start = performance.now()
+    const startColors = [...colorsRef.current]
+    const startShader = { ...shaderRef.current }
+    const startTime = performance.now()
     const animate = (now) => {
-      const t = Math.min((now - start) / duration, 1)
-      const eased = t * t * (3 - 2 * t) // smoothstep
-      setColors(palette.map((c, i) => lerpColor(c, BASE_COLORS[i], eased)))
-      if (t < 1) animRef.current = requestAnimationFrame(animate)
+      const t = Math.min((now - startTime) / duration, 1)
+      const eased = t * t * (3 - 2 * t)
+      const newColors = targetColors.map((c, i) => lerpColor(startColors[i], c, eased))
+      colorsRef.current = newColors
+      setColors(newColors)
+      const s = {}
+      for (const k in BASE_SHADER) {
+        s[k] = lerpVal(startShader[k], targetShader[k] ?? BASE_SHADER[k], eased)
+      }
+      shaderRef.current = s
+      setShader(s)
+      if (t < 1) {
+        animRef.current = requestAnimationFrame(animate)
+      } else if (onDone) {
+        onDone()
+      }
     }
-    // small delay before easing back
-    setTimeout(() => {
-      animRef.current = requestAnimationFrame(animate)
-    }, 200)
+    animRef.current = requestAnimationFrame(animate)
+  }
+
+  const handlePress = () => {
+    const palette = ALT_PALETTES[Math.floor(Math.random() * ALT_PALETTES.length)]
+    animateTo(palette, BASE_SHADER, 100, () => {
+      setTimeout(() => animateTo(BASE_COLORS, BASE_SHADER, 1500), 200)
+    })
+  }
+
+  const handleMenuEffect = (idx) => {
+    const effect = MENU_EFFECTS[idx]
+    const targetShader = { ...BASE_SHADER, ...effect.shader }
+    animateTo(effect.colors, targetShader, 800, () => {
+      setTimeout(() => animateTo(BASE_COLORS, BASE_SHADER, 2500), 1500)
+    })
   }
 
   return (
@@ -319,15 +322,15 @@ function App() {
             grain="on"
             lightType="3d"
             type="sphere"
-            uAmplitude={1.4}
-            uDensity={1.1}
-            uFrequency={5.5}
-            uSpeed={0.1}
-            uStrength={0.4}
+            uAmplitude={shader.uAmplitude}
+            uDensity={shader.uDensity}
+            uFrequency={shader.uFrequency}
+            uSpeed={shader.uSpeed}
+            uStrength={shader.uStrength}
           />
         </ShaderGradientCanvas>
       </div>
-      <TypingOverlay />
+      <TypingOverlay onMenuEffect={handleMenuEffect} />
     </>
   )
 }
