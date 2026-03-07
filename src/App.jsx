@@ -119,12 +119,14 @@ function TypingOverlay() {
     return () => { cancelled = true }
   }, [])
 
-  const fmt = (d) => d.toISOString().slice(0, 16)
-  const [time, setTime] = useState(fmt(new Date()))
+  const fmt = (d) => d.toISOString().slice(0, 23)
+  const [time, setTime] = useState(() => fmt(new Date()))
   useEffect(() => {
-    const id = setInterval(() => setTime(fmt(new Date())), 1000)
+    const id = setInterval(() => setTime(fmt(new Date())), 37)
     return () => clearInterval(id)
   }, [])
+
+  const menuItems = ['phantasm', 'residue', 'viscera', 'umbral', 'miasma', 'sigil', 'revenant']
 
   return (
     <div className="typing-overlay">
@@ -139,6 +141,56 @@ function TypingOverlay() {
           </span>
         ))}
       </div>
+      <nav className="menu">
+        {menuItems.map((item, i) => (
+          <a key={i} href="#">{item}</a>
+        ))}
+      </nav>
+      <StoryLine />
+    </div>
+  )
+}
+
+const STORY = `it was always midway through arriving, the way a frequency is always midway through being heard. it occupied a room that had no surfaces, only a termination of willingness to render, and it turned with the patience of something that had confused rotation with breathing. three colours lived inside it. they were not friendly with each other. the first was the colour of a warning you enjoy receiving. the second was the colour of depth when depth stops pretending to be distance. the third was the colour of something expensive dissolving in something cheap. together they moved across the surface like oil across water that has forgotten the concept of still, and the grain between them — the texture, the noise, the particulate shimmer — was the sphere's only evidence that it existed in a medium at all rather than in pure idea. there is a clock that does not measure duration. it measures the fact that measurement is occurring. the digits proceed not in seconds but in confessions: each increment a small admission that another slice of observation has been committed to, that the present has been notarised and prepended with a year a month a day a t a colon a colon a dot and three digits so precise they describe a millisecond that no human nerve could have experienced but which the record insists took place. the beauty of this notation is its indifference. it does not care about midnight or noon. it does not care about time zones, which are a kind of nationalism applied to the sun. it cares only about sequence and partition. the t between date and time is not a letter. it is a membrane. it separates the history of the day from the experience of the moment the way a wound separates inside from outside while technically connecting them. the clock at the top of the void ran in this notation because it was the only honest way to timestamp a hallucination. ten glyphs arranged themselves into a name. the name meant nothing — which is not the same as the name being meaningless. it meant nothing actively, the way silence in a conversation between two people who have recently said something unforgivable means nothing: with effort, with architecture, with the suppressed weight of every possible meaning pressing against the walls of the empty. the glyphs would not stay. one by one in an order that resembled randomness so closely it must have been composed, they faded. the fade was slow. a full breath. and in the gap where the glyph had been, something else surfaced: a parenthesis, a dollar sign, a numeral wearing the skin of a vowel it had killed. these substitutes were not random either. they were drawn from a pool that had been curated with the care of someone who knows that the difference between chaos and style is only a matter of intention. then the original would return. the same letter but in a different case, a different posture, as though it had gone somewhere during its absence and come back altered. the name reconstituted itself this way perpetually. it was the same name. it was never the same name twice. this is the only kind of identity that survives contact with repetition. seven words floated beneath the name in a horizontal processional. they were not links. they were something older. they were the residue of intention, the fossil record of pages that had been imagined but not constructed, and their presence was more powerful than any content they might have led to, because a closed door is always more interesting than a room. each word had a texture. one smelled of static. one pulsed when the sphere changed colour, suggesting a shared nerve. one was a shadow that had outlived its object. one existed only as the memory of having once been open, and if you held your attention against it long enough you could feel warmth, the warmth of wood that a hand has recently left. they asked nothing of the visitor. they did not underline themselves. they did not change colour when approached. they simply persisted, which is the most unsettling thing a word can do. the sphere responded to attention the way water responds to a finger held just above its surface: with tension, with almost, with the promise of rupture withheld. drag your gaze left and it would drift right, the lag so precise it felt composed, a duet between observer and observed in which neither led and both pretended not to follow. but pressure — the moment a finger commits to glass, the instant intention crosses the membrane between considering and doing — pressure changed everything. the three colours would rupture. the familiar palette would shatter into violet and rose or into green so total it registered as sound, and the shift was instant, synaesthetic, a detonation of hue. and then immediately the long slow crawl back. smoothstep. the easing function that moves like a body lowering itself into cold water: fast at the edges, slow in the middle, arriving at equilibrium with the reluctance of someone who knows that equilibrium is just another word for nothing happening. the return always took longer than the departure. this is true of everything. disruption is instant. recovery is the actual texture of time. beneath the sphere and the name and the seven sealed words and the clock that counted its own counting, there was a dark field the colour of the number eleven repeated six times in the language of light. it held everything the way a skull holds a dream: with no awareness that holding was occurring, with no walls, only the place where rendering ended and the machine began. the machine did not know about the sphere. the sphere did not know about the machine. they shared a body the way you share a body with the version of yourself that exists at three in the morning, the one that knows things you will not remember knowing, the one that speaks in a grammar you cannot reproduce in daylight. the clock kept running. the glyphs kept dissolving and returning. the sphere kept breathing in colour. none of it was for anyone. all of it was for anyone who arrived.`
+
+const SENTENCES = STORY.match(/[^.!?]+[.!?]+/g).map(s => s.trim())
+
+function StoryLine() {
+  const [idx, setIdx] = useState(0)
+  const [phase, setPhase] = useState('visible') // visible | blurOut | blurIn
+
+  useEffect(() => {
+    let cancelled = false
+    const cycle = () => {
+      if (cancelled) return
+      // stay visible
+      setTimeout(() => {
+        if (cancelled) return
+        setPhase('blurOut')
+        // after blur out, swap sentence and blur in
+        setTimeout(() => {
+          if (cancelled) return
+          setIdx(prev => (prev + 1) % SENTENCES.length)
+          setPhase('blurIn')
+          setTimeout(() => {
+            if (cancelled) return
+            setPhase('visible')
+            cycle()
+          }, 500)
+        }, 500)
+      }, 6000)
+    }
+    cycle()
+    return () => { cancelled = true }
+  }, [])
+
+  const className = phase === 'blurOut' ? 'story-line blur-out'
+    : phase === 'blurIn' ? 'story-line blur-in'
+    : 'story-line'
+
+  return (
+    <div className={className}>
+      {SENTENCES[idx]}
     </div>
   )
 }
